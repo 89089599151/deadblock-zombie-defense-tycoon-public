@@ -11,10 +11,12 @@ function ProductionService:Reconcile(state,now)
 		local def=self.config.Droppers[id]
 		local line=state.lines[id]
 		if not line then
-			line={model=ProductionModel.new({Interval=self.config.Production.Interval,TravelTime=def.TravelTime,Value=def.Levels[level].Value}),lastUpdated=now,level=level,oreParts={}}
+			local value=state.tycoon:GetDropperValue(id,level)
+			line={model=ProductionModel.new({Interval=self.config.Production.Interval,TravelTime=def.TravelTime,Value=value}),lastUpdated=now,level=level,value=value,oreParts={}}
 			state.lines[id]=line
-		elseif level~=line.level then
-			line.model:SetValue(def.Levels[level].Value)
+		else
+			local value=state.tycoon:GetDropperValue(id,level)
+			if value~=line.value then line.model:SetValue(value) line.value=value end
 			line.level=level
 		end
 	end

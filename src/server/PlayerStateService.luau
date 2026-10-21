@@ -7,10 +7,10 @@ function PlayerStateService.new(config)
 	return setmetatable({ config = config, states = {} }, PlayerStateService)
 end
 
-function PlayerStateService:Create(player, base)
+function PlayerStateService:Create(player, base, tycoon)
 	assert(not self.states[player], "Player already has a session")
 	local state = {
-		player = player, base = base, tycoon=TycoonModel.new(self.config,player.UserId), lines={},collected=0,
+		player = player, base = base, tycoon=tycoon or TycoonModel.new(self.config,player.UserId), lines={},collected=0,
 	}
 	self.states[player] = state
 	self:Publish(state)
@@ -25,6 +25,13 @@ function PlayerStateService:Publish(state)
 	state.player:SetAttribute("DeadblockIncome",state.tycoon:GetIncomePerSecond())
 	state.player:SetAttribute("DeadblockDropperCount",count)
 	state.player:SetAttribute("DeadblockExpansion",state.tycoon.expansion)
+	state.player:SetAttribute("DeadblockBaseLevel",state.tycoon:GetBaseLevel())
+	state.player:SetAttribute("DeadblockLevelCap",state.tycoon:GetLevelCap())
+	state.player:SetAttribute("DeadblockWallLevel",state.tycoon.wallLevel)
+	state.player:SetAttribute("DeadblockEngineers",state.tycoon.engineers)
+	state.player:SetAttribute("DeadblockUnlockedWorld",state.tycoon.unlockedWorld)
+	state.player:SetAttribute("DeadblockCores",state.tycoon.cores)
+	state.player:SetAttribute("DeadblockOverdrive",state.tycoon:OverdriveLeft())
 end
 
 function PlayerStateService:Get(player)
@@ -44,7 +51,9 @@ function PlayerStateService:Remove(player)
 	player:SetAttribute("DeadblockMoney", nil)
 	player:SetAttribute("DeadblockIncome", nil)
 	player:SetAttribute("DeadblockDropperCount",nil)
-	player:SetAttribute("DeadblockExpansion",nil)
+	for _, key in ipairs({"DeadblockExpansion","DeadblockBaseLevel","DeadblockLevelCap","DeadblockWallLevel","DeadblockEngineers","DeadblockUnlockedWorld","DeadblockCores","DeadblockOverdrive"}) do
+		player:SetAttribute(key, nil)
+	end
 	player:SetAttribute("DeadblockStatus", "loading")
 end
 
